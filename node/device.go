@@ -1,4 +1,4 @@
-package main
+package node
 
 // Device represents a secret shared non-hardened node.
 type Device struct {
@@ -7,9 +7,4 @@ type Device struct {
 	deviceIdx      int // Index of the device with respect to the secret sharing.
 	secretKeyShare []byte
 	publicKey      []byte
-}
-
-type State struct {
-	nodeIdx   int // Index of the node in the derivation tree.
-	chainCode []byte
 }
