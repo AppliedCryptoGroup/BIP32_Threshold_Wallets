@@ -10,5 +10,5 @@ func main() {
 		tvrfDerivation := TVRFDerivation{devices: devices}
 		benchDerivation(tvrfDerivation)
 	*/
-	GenSk(2, 3)
+	InitDevices(4, 6)
 }

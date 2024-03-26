@@ -1,12 +1,14 @@
 package main
 
 import (
+
+	"crypto/rand"
+	"fmt"
+	"math/big"
+
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/hex"
-	"fmt"
-	"math/big"
-	// "flag"
 	"os"
 	"strconv"
 
@@ -100,12 +102,19 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 		// privkey := suite.Scalar().Pick(suite.RandomStream())
 		// pubkey := suite.Point().Mul(privkey, nil)
 
+
 		device, pubkey := node.NewDevice(i, privShares[uint32(i)+1], pubKey, index, chaincode, mino.(*minogrpc.Minogrpc))
+
 		pubkeys[i] = pubkey
 		devices[i] = device
 	}
 
 	Authority := NewAuthority(addrs, pubkeys)
+
+	field := curves.NewField(btcec.S256().Params().N)
+	rnd := rand.Reader
+	rho, _ := field.RandomElement(rnd)
+	devices[0].RandSk(*rho)
 
 	return Authority, devices
 }
