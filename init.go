@@ -1,8 +1,12 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
+
+	"crypto/hmac"
+	"crypto/sha512"
 
 	// "flag"
 	"os"
@@ -87,6 +91,11 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 
 	privShares, pubKey := GenSk(uint32(t), uint32(n))
 
+	string := "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc7a1c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542"
+	seed, _ := hex.DecodeString(string)
+	chaincode, _ := NewMasterKey(seed)
+	index := uint32(0x0)
+
 	for i, mino := range minos {
 		for _, m := range minos {
 			mino.(*minogrpc.Minogrpc).GetCertificateStore().Store(m.GetAddress(),
@@ -96,7 +105,7 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 		// privkey := suite.Scalar().Pick(suite.RandomStream())
 		// pubkey := suite.Point().Mul(privkey, nil)
 
-		device, pubkey := node.NewDevice(i, privShares[uint32(i)], pubKey, mino.(*minogrpc.Minogrpc))
+		device, pubkey := node.NewDevice(i, privShares[uint32(i)+1], pubKey, index, chaincode, mino.(*minogrpc.Minogrpc))
 		pubkeys[i] = pubkey
 		devices[i] = device
 	}
@@ -135,4 +144,20 @@ func GenSk(tshare uint32, nshare uint32) (map[uint32]*dealer.Share, *curves.EcPo
 	}
 
 	return sharesMap, pk
+}
+
+func NewMasterKey(seed []byte) ([]byte, error) {
+	// Generate key and chaincode
+	hmac := hmac.New(sha512.New, []byte("Bitcoin seed"))
+	_, err := hmac.Write(seed)
+	if err != nil {
+		return nil, err
+	}
+	intermediary := hmac.Sum(nil)
+
+	// Split it into our key and chain code
+	// keyBytes := intermediary[:32]
+	chainCode := intermediary[32:]
+
+	return chainCode, nil
 }

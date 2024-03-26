@@ -26,13 +26,19 @@ type Device struct {
 	privkey kyber.Scalar
 }
 
-func NewDevice(idx int, sk SecretKeyShare, pk PublicKey, m mino.Mino) (Device, kyber.Point) {
+func NewDevice(idx int, sk SecretKeyShare, pk PublicKey, index uint32, ch []byte, m mino.Mino) (Device, kyber.Point) {
 	factory := types.NewMessageFactory(m.GetAddressFactory())
 
 	privkey := suite.Scalar().Pick(suite.RandomStream())
 	pubkey := suite.Point().Mul(privkey, nil)
 
+	state := State{
+		nodeIdx:   index,
+		chainCode: ch,
+	}
+
 	return Device{
+		state:          state,
 		deviceIdx:      idx,
 		secretKeyShare: sk,
 		publicKey:      pk,
