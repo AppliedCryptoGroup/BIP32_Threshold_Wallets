@@ -1,11 +1,19 @@
 package node
 
 import (
+	"github.com/coinbase/kryptology/pkg/tecdsa/gg20/dealer"
+	"go.dedis.ch/dela/dkg/pedersen/types"
+	"go.dedis.ch/dela/mino"
+	"go.dedis.ch/dela/serde"
+	"go.dedis.ch/kyber/v3"
+	"go.dedis.ch/kyber/v3/suites"
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	v1 "github.com/coinbase/kryptology/pkg/sharing/v1"
 	"github.com/coinbase/kryptology/pkg/tecdsa/gg20/dealer"
 	"golang.org/x/crypto/sha3"
 )
+
+var suite = suites.MustFind("Ed25519")
 
 type SecretKeyShare *dealer.Share
 
@@ -16,12 +24,32 @@ type Device struct {
 	deviceIdx      int // Index of the device with respect to the secret sharing.
 	t              uint32
 	n              uint32
-	secretKeyShare v1.ShamirShare
-	publicKey      *PublicKey
+	secretKeyShare SecretKeyShare
+	publicKey      PublicKey
+
+	mino    mino.Mino
+	factory serde.Factory
+	privkey kyber.Scalar
 }
 
 var hash = sha3.New256()
 var curve = curves.K256()
+
+func NewDevice(idx int, sk SecretKeyShare, pk PublicKey, m mino.Mino) (Device, kyber.Point) {
+	factory := types.NewMessageFactory(m.GetAddressFactory())
+
+	privkey := suite.Scalar().Pick(suite.RandomStream())
+	pubkey := suite.Point().Mul(privkey, nil)
+
+	return Device{
+		deviceIdx:      idx,
+		secretKeyShare: sk,
+		publicKey:      pk,
+		privkey:        privkey,
+		mino:           m,
+		factory:        factory,
+	}, pubkey
+}
 
 func (d *Device) RandSk(rho curves.Element) *v1.ShamirShare {
 	// For k in [t]: a <- H(rho || k)
