@@ -1,11 +1,16 @@
 package node
 
+import "github.com/coinbase/kryptology/pkg/core/curves"
+
+type PublicKey *curves.EcPoint
+type SecretKey *curves.Element
+
 // Node represents a hardened node.
 type Node struct {
 	state State
 
-	secretKey []byte
-	publicKey []byte
+	secretKey *SecretKey
+	publicKey *PublicKey
 }
 
 type State struct {

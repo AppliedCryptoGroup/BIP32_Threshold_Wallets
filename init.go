@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/big"
-
 	"os"
 	"strconv"
 
@@ -37,7 +36,7 @@ func B10(s string) *big.Int {
 	return x
 }
 
-func init() {
+func initSecretSharing() {
 
 	tshare := uint32(2)
 	nshare := uint32(3)
