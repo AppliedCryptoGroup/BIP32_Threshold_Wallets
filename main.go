@@ -10,5 +10,5 @@ func main() {
 		tvrfDerivation := TVRFDerivation{devices: devices}
 		benchDerivation(tvrfDerivation)
 	*/
-	initSecretSharing()
+	GenSk(2, 3)
 }
