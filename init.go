@@ -1,14 +1,12 @@
 package main
 
 import (
-
-	"crypto/rand"
-	"fmt"
-	"math/big"
-
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
+	"math/big"
 	"os"
 	"strconv"
 
@@ -99,10 +97,6 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 				m.(*minogrpc.Minogrpc).GetCertificateChain())
 		}
 
-		// privkey := suite.Scalar().Pick(suite.RandomStream())
-		// pubkey := suite.Point().Mul(privkey, nil)
-
-
 		device, pubkey := node.NewDevice(i, privShares[uint32(i)+1], pubKey, index, chaincode, mino.(*minogrpc.Minogrpc))
 
 		pubkeys[i] = pubkey
@@ -119,16 +113,19 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 	return Authority, devices
 }
 
-func GenSk(tshare uint32, nshare uint32) (map[uint32]*dealer.Share, *curves.EcPoint) {
-	k256 := btcec.S256()
+func GenSk(t uint32, n uint32) (map[uint32]*dealer.Share, *curves.EcPoint) {
+	k256, err := curves.K256().ToEllipticCurve()
+	if err != nil {
+		panic(err)
+	}
 
-	ikm, _ := dealer.NewSecret(k256)
+	secret, _ := dealer.NewSecret(k256)
 
-	pk, sharesMap, _ := dealer.NewDealerShares(k256, tshare, nshare, ikm)
+	pk, sharesMap, _ := dealer.NewDealerShares(k256, t, n, secret)
 
 	// TODO: define logger
-	fmt.Printf("Sharing scheme: Any %d from %d\n", tshare, nshare)
-	fmt.Printf("Random secret: (%x)\n\n", ikm)
+	fmt.Printf("Sharing scheme: Any %d from %d\n", t, n)
+	fmt.Printf("Random secret: (%x)\n\n", secret)
 	fmt.Printf("Public key: (%s %s)\n\n", pk.X, pk.Y)
 
 	for i := range sharesMap {

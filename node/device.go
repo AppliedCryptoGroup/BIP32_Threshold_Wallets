@@ -57,19 +57,11 @@ func NewDevice(idx int, sk SecretKeyShare, pk PublicKey, index uint32, ch []byte
 	}, pubkey
 }
 
+// RandSk randomizes the device's secret key share using the given randomness rho.
+// TODO: Need to check whether rho and the a_i values should be curves.Element or curves.Scalar.
+// Shamir shares can be safely transformed to scalars using: curve.Scalar.SetBytes(secretKeyShare.Bytes())
 func (d *Device) RandSk(rho curves.Element) *v1.ShamirShare {
 	field := curves.NewField(curve.Params().N)
-
-	//indexElement := field.NewElement(big.NewInt(int64(d.deviceIdx)))
-	//rhoPrime := rho.Clone()
-	//for i := uint32(0); i < d.t; i++ {
-	//	// ak_i = H(rho || i)
-	//	akiBytes := hash.Sum(append(rho.Bytes(), []byte{byte(i)}...))
-	//	aki := field.ElementFromBytes(akiBytes)
-	//	iExp := field.NewElement(big.NewInt(int64(i)))
-	//	// rho' = rho + ak_i^i * deviceIdx^iExp
-	//	rhoPrime = rhoPrime.Add(aki.Mul(indexElement.Pow(iExp)))
-	//}
 
 	indexElement := field.NewElement(big.NewInt(int64(d.deviceIdx)))
 	rhoPrime := computeCoefficient(rho, int(d.t), field) // The last coefficient.
