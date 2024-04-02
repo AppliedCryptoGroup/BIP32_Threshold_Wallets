@@ -19,7 +19,7 @@ var suite = suites.MustFind("Ed25519")
 var curve = btcec.S256()
 
 type SecretKeyShare *dealer.Share
-type PublicKeyShare *dealer.PublicShare
+type PublicKeyShare *curves.EcPoint
 
 // Device represents a secret shared non-hardened node.
 type Device struct {
