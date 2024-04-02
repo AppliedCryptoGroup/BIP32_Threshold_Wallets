@@ -19,23 +19,25 @@ var suite = suites.MustFind("Ed25519")
 var curve = btcec.S256()
 
 type SecretKeyShare *dealer.Share
+type PublicKeyShare *dealer.PublicShare
 
 // Device represents a secret shared non-hardened node.
 type Device struct {
 	state State
 
-	deviceIdx      int // Index of the device with respect to the secret sharing.
-	t              uint32
-	n              uint32
-	secretKeyShare *v1.ShamirShare
-	publicKey      PublicKey
+	deviceIdx       int // Index of the device with respect to the secret sharing.
+	t               uint32
+	n               uint32
+	secretKeyShare  *v1.ShamirShare
+	publicKeyShare  PublicKeyShare
+	publicKeyGlobal PublicKey // Global public key
 
 	mino    mino.Mino
 	factory serde.Factory
 	privkey kyber.Scalar
 }
 
-func NewDevice(idx int, sk SecretKeyShare, pk PublicKey, index uint32, ch []byte, m mino.Mino) (Device, kyber.Point) {
+func NewDevice(idx int, pk PublicKeyShare, sk SecretKeyShare, pkG PublicKey, index uint32, ch []byte, m mino.Mino) (Device, kyber.Point) {
 	factory := types.NewMessageFactory(m.GetAddressFactory())
 
 	privkey := suite.Scalar().Pick(suite.RandomStream())
@@ -47,13 +49,14 @@ func NewDevice(idx int, sk SecretKeyShare, pk PublicKey, index uint32, ch []byte
 	}
 
 	return Device{
-		state:          state,
-		deviceIdx:      idx,
-		secretKeyShare: sk.ShamirShare,
-		publicKey:      pk,
-		privkey:        privkey,
-		mino:           m,
-		factory:        factory,
+		state:           state,
+		deviceIdx:       idx,
+		secretKeyShare:  sk.ShamirShare,
+		publicKeyShare:  pk,
+		publicKeyGlobal: pkG,
+		privkey:         privkey,
+		mino:            m,
+		factory:         factory,
 	}, pubkey
 }
 

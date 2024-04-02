@@ -85,7 +85,7 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 
 	pubkeys := make([]kyber.Point, len(minos))
 
-	privShares, pubKey := GenSk(uint32(t), uint32(n))
+	pubShares, privShares, pubKeyGlob := GenSk(uint32(t), uint32(n))
 
 	seedBytes, _ := hex.DecodeString(seed)
 	chaincode, _ := NewMasterKey(seedBytes)
@@ -97,7 +97,7 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 				m.(*minogrpc.Minogrpc).GetCertificateChain())
 		}
 
-		device, pubkey := node.NewDevice(i, privShares[uint32(i)+1], pubKey, index, chaincode, mino.(*minogrpc.Minogrpc))
+		device, pubkey := node.NewDevice(i, pubShares[uint32(i)+1], privShares[uint32(i)+1], pubKeyGlob, index, chaincode, mino.(*minogrpc.Minogrpc))
 
 		pubkeys[i] = pubkey
 		devices[i] = device
@@ -113,7 +113,7 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 	return Authority, devices
 }
 
-func GenSk(t uint32, n uint32) (map[uint32]*dealer.Share, *curves.EcPoint) {
+func GenSk(t uint32, n uint32) (map[uint32]*dealer.PublicShare, map[uint32]*dealer.Share, *curves.EcPoint) {
 	k256, err := curves.K256().ToEllipticCurve()
 	if err != nil {
 		panic(err)
@@ -122,6 +122,8 @@ func GenSk(t uint32, n uint32) (map[uint32]*dealer.Share, *curves.EcPoint) {
 	secret, _ := dealer.NewSecret(k256)
 
 	pk, sharesMap, _ := dealer.NewDealerShares(k256, t, n, secret)
+
+	pubSharesMap, _ := dealer.PreparePublicShares(sharesMap)
 
 	// TODO: define logger
 	fmt.Printf("Sharing scheme: Any %d from %d\n", t, n)
@@ -132,7 +134,7 @@ func GenSk(t uint32, n uint32) (map[uint32]*dealer.Share, *curves.EcPoint) {
 		fmt.Printf("Share: %x\n", sharesMap[i].Bytes())
 	}
 
-	return sharesMap, pk
+	return pubSharesMap, sharesMap, pk
 }
 
 func NewMasterKey(seed []byte) ([]byte, error) {
