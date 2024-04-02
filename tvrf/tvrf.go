@@ -77,7 +77,17 @@ func (t *DDHTVRF) PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*Parti
 }
 
 func (t *DDHTVRF) Verify(pk PublicKey, m Message, eval Evaluation) (bool, error) {
-	return false, errors.New("not implemented")
+	correctEvals := make([]PartialEvaluation, 0)
+	for _, eval := range eval.Proof {
+		// TODO: Check if t.ZKP.Verify(eval.Proof, eval.Eval, eval.pk)
+		correctEvals = append(correctEvals, eval)
+	}
+
+	if eval.Eval.Equal(t.combineEvaluations(correctEvals)) {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
 func (t *DDHTVRF) Combine(evals []PartialEvaluation) (*Evaluation, error) {
