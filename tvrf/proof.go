@@ -1,8 +1,8 @@
 package tvrf
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
-	"fmt"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 )
@@ -41,12 +41,30 @@ func (t *DDHTVRF) ProveEq(phi curves.Point, m Message, sk SecretKeyShare, pk Pub
 	return &Proof{res, ch, g}
 }
 
-// func (t *DDHTVRF) VerifyEq(phi curves.Point, sk SecretKeyShare, pk PublicKeyShare, proof *Proof){
-// 	res := proof.Res
-// 	ch := proof.Ch
-// 	g := proof.g
-// 	com1 := g.Mul(res)
-// }
+func (t *DDHTVRF) VerifyEq(phi curves.Point, sk SecretKeyShare, pk curves.Point, proof *Proof) bool {
+	res := proof.Res
+	ch := proof.Ch
+	g := proof.g
+	rG := g.Mul(res)
+	rH := t.curve.ScalarBaseMult(res)
+	cxG := phi.Mul(ch)
+	cxH := pk.Mul(ch)
+	R := rG.Add(cxG)
+	Rp := rH.Add(cxH)
+
+	var marshaledValue []byte
+	phiMar, _ := pointMarshalBinary(phi)
+	pkMar, _ := pointMarshalBinary(pk)
+	com1Mar, _ := pointMarshalBinary(R)
+	com2Mar, _ := pointMarshalBinary(Rp)
+	marshaledValue = append(marshaledValue, phiMar...)
+	marshaledValue = append(marshaledValue, pkMar...)
+	marshaledValue = append(marshaledValue, com1Mar...)
+	marshaledValue = append(marshaledValue, com2Mar...)
+	chp := t.curve.Scalar.Hash(marshaledValue)
+
+	return hmac.Equal(chp.Bytes(), ch.Bytes())
+}
 
 func pointMarshalBinary(point curves.Point) ([]byte, error) {
 	// Always stores points in compressed form
@@ -60,22 +78,4 @@ func pointMarshalBinary(point curves.Point) ([]byte, error) {
 	output[len(name)] = byte(':')
 	copy(output[len(output)-len(t):], t)
 	return output, nil
-}
-
-func pointUnmarshalBinary(input []byte) (curves.Point, error) {
-	if len(input) < scalarBytes+1+len("secp256k1") {
-		return nil, fmt.Errorf("invalid byte sequence")
-	}
-	sep := byte(':')
-	i := 0
-	for ; i < len(input); i++ {
-		if input[i] == sep {
-			break
-		}
-	}
-	curve := curves.K256()
-	if curve == nil {
-		return nil, fmt.Errorf("unrecognized curve")
-	}
-	return curve.Point.FromAffineCompressed(input[i+1:])
 }
