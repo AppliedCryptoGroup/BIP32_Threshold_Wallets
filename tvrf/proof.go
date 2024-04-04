@@ -66,6 +66,7 @@ func (t *DDHTVRF) VerifyEq(phi curves.Point, sk SecretKeyShare, pk curves.Point,
 	return hmac.Equal(chp.Bytes(), ch.Bytes())
 }
 
+// Adopted directly from kryptology/pkg/core/curves
 func pointMarshalBinary(point curves.Point) ([]byte, error) {
 	// Always stores points in compressed form
 	// The first bytes are the curve name
