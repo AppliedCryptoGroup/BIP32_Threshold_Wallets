@@ -5,6 +5,7 @@ import (
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/coinbase/kryptology/pkg/tecdsa/gg20/dealer"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/sha3"
 
 	"bip32_threshold_wallet/tvrf"
@@ -27,11 +28,8 @@ func TestTVRF(t *testing.T) {
 	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, p256, sha256)
 
 	message := []byte("Hello, World!")
-	ski, _ := p256.Scalar.SetBytes(sharesMap[1].ShamirShare.Value.Bytes())
-	pkiPoint, _ := p256.Point.Set(sharesMap[1].Point.X, sharesMap[1].Point.Y)
-	pki := tvrf.PublicKeyShare{
-		Idx:   0,
-		Value: &pkiPoint,
-	}
-	ddhTvrf.PEval(message, &ski, pki)
+	err, ski, pki := tvrf.ShamirShareToKeyPair(p256, sharesMap[1].ShamirShare, sharesMap[1].Point)
+	assert.NoError(t, err)
+
+	ddhTvrf.PEval(message, ski, *pki)
 }

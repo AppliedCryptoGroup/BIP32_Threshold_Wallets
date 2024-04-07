@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
+	v1 "github.com/coinbase/kryptology/pkg/sharing/v1"
 )
 
 // The implementation of the DDH-based TVRF as proposed in https://eprint.iacr.org/2020/096.
@@ -40,7 +41,7 @@ type PartialEvaluation struct {
 	Proof []byte
 }
 
-type PublicKey *curves.Point
+type PublicKey curves.Point
 
 // PublicKeyShare represents a public key share, also containing an index.
 type PublicKeyShare struct {
@@ -49,7 +50,7 @@ type PublicKeyShare struct {
 }
 
 // SecretKeyShare represents a secret key share.
-type SecretKeyShare *curves.Scalar
+type SecretKeyShare curves.Scalar
 
 // TODO: Replace with suitable type.
 type Message []byte
@@ -65,7 +66,7 @@ func NewDDHTVRF(t uint32, n uint32, curve *curves.Curve, hash hash.Hash) *DDHTVR
 
 func (t *DDHTVRF) PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*PartialEvaluation, error) {
 	h := t.curve.Point.Hash(m)
-	phi := h.Mul(*sk)
+	phi := h.Mul(sk)
 	// TODO: proof := t.ZKP.Prove(phi, sk, pk)
 	eval := PartialEvaluation{
 		pk:    pk,
@@ -154,4 +155,19 @@ func (t *DDHTVRF) lagrangeCoefficient(idx int, indicesSet []int) curves.Scalar {
 	}
 
 	return lambda
+}
+
+func ShamirShareToKeyPair(curve *curves.Curve, secretShare *v1.ShamirShare, pubShare *curves.EcPoint) (error, SecretKeyShare, *PublicKeyShare) {
+	sk, err := curve.Scalar.SetBytes(secretShare.Value.Bytes())
+	if err != nil {
+		return err, nil, nil
+	}
+
+	pkPoint, _ := curve.Point.Set(pubShare.X, pubShare.Y)
+	pk := &PublicKeyShare{
+		Idx:   0,
+		Value: &pkPoint,
+	}
+
+	return nil, sk, pk
 }

@@ -36,7 +36,7 @@ func (t *DDHTVRF) ProveEq(phi curves.Point, m Message, sk SecretKeyShare, pk Pub
 
 	res := t.curve.Scalar.One()
 
-	res = res.Mul(r).Sub(ch.Mul(*sk))
+	res = res.Mul(r).Sub(ch.Mul(sk))
 
 	return &Proof{res, ch, g}
 }
