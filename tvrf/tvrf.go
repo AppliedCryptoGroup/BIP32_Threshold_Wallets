@@ -44,8 +44,8 @@ type PublicKey *curves.Point
 
 // PublicKeyShare represents a public key share, also containing an index.
 type PublicKeyShare struct {
-	idx   uint32
-	value *curves.Point
+	Idx   uint32
+	Value *curves.Point
 }
 
 // SecretKeyShare represents a secret key share.
@@ -54,13 +54,13 @@ type SecretKeyShare *curves.Scalar
 // TODO: Replace with suitable type.
 type Message []byte
 
-func NewDDHTVRF(t uint32, n uint32, curve *curves.Curve, hash hash.Hash) (*DDHTVRF, error) {
+func NewDDHTVRF(t uint32, n uint32, curve *curves.Curve, hash hash.Hash) *DDHTVRF {
 	return &DDHTVRF{
 		t:     t,
 		n:     n,
 		curve: curve,
 		hash:  hash,
-	}, nil
+	}
 }
 
 func (t *DDHTVRF) PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*PartialEvaluation, error) {
@@ -115,13 +115,13 @@ func (t *DDHTVRF) Combine(evals []PartialEvaluation) (*Evaluation, error) {
 func (t *DDHTVRF) combineEvaluations(evals []PartialEvaluation) curves.Point {
 	indicesSet := make([]int, 0)
 	for _, eval := range evals {
-		indicesSet = append(indicesSet, int(eval.pk.idx))
+		indicesSet = append(indicesSet, int(eval.pk.Idx))
 	}
 
 	combinedEval := t.curve.Point.Identity() // TODO does this correspond to 1?
 	// Compute combinedEval = \prod eval_i^{\lambda_i}
 	for _, eval := range evals {
-		lambda := t.lagrangeCoefficient(int(eval.pk.idx), indicesSet)
+		lambda := t.lagrangeCoefficient(int(eval.pk.Idx), indicesSet)
 		combinedEval = combinedEval.Add(eval.Eval.Mul(lambda))
 	}
 
@@ -130,7 +130,7 @@ func (t *DDHTVRF) combineEvaluations(evals []PartialEvaluation) curves.Point {
 
 // lagrangeCoefficient computes the Lagrange coefficient for the given index at the 0 evaluation.
 func (t *DDHTVRF) lagrangeCoefficient(idx int, indicesSet []int) curves.Scalar {
-	// \prod_{k\in indicesSet\setminus 0} (idx-k) / (0-k)
+	// \prod_{k\in indicesSet\setminus 0} (Idx-k) / (0-k)
 	lambda := t.curve.Scalar.One() // TODO does this correspond to 1?
 
 	for _, k := range indicesSet {
@@ -139,7 +139,7 @@ func (t *DDHTVRF) lagrangeCoefficient(idx int, indicesSet []int) curves.Scalar {
 			continue
 		}
 
-		// lambda = lambda * (idx-k) / (0-k)
+		// lambda = lambda * (Idx-k) / (0-k)
 		numerator := big.NewInt(int64(idx - k))
 		numeratorScalar, err := t.curve.Scalar.SetBigInt(numerator)
 		if err != nil {

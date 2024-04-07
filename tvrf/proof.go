@@ -25,7 +25,7 @@ func (t *DDHTVRF) ProveEq(phi curves.Point, m Message, sk SecretKeyShare, pk Pub
 	com2 := t.curve.ScalarBaseMult(r)
 	var marshaledValue []byte
 	phiMar, _ := pointMarshalBinary(phi)
-	pkMar, _ := pointMarshalBinary(*pk.value)
+	pkMar, _ := pointMarshalBinary(*pk.Value)
 	com1Mar, _ := pointMarshalBinary(com1)
 	com2Mar, _ := pointMarshalBinary(com2)
 	marshaledValue = append(marshaledValue, phiMar...)
@@ -69,7 +69,7 @@ func (t *DDHTVRF) VerifyEq(phi curves.Point, sk SecretKeyShare, pk curves.Point,
 // Adopted directly from kryptology/pkg/core/curves
 func pointMarshalBinary(point curves.Point) ([]byte, error) {
 	// Always stores points in compressed form
-	// The first bytes are the curve name
+	// The first bytes are the p256 name
 	// separated by a colon followed by the compressed point
 	// bytes
 	t := point.ToAffineCompressed()
