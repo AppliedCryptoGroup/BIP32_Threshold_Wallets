@@ -15,7 +15,7 @@ type TVRF interface {
 	// PEval computes the partial evaluation of the TVRF.
 	PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*PartialEvaluation, error)
 	// Verify verifies the evaluation of the TVRF on the given message.
-	Verify(pk PublicKey, m Message, eval Evaluation) (bool, error)
+	Verify(eval Evaluation) (bool, error)
 	// Combine combines at least t partial evaluations to compute the final evaluation of the TVRF.
 	Combine(evals []PartialEvaluation) (*Evaluation, error)
 }
@@ -23,7 +23,6 @@ type TVRF interface {
 type DDHTVRF struct {
 	t uint32
 	n uint32
-	//publicKeys PublicKeys
 
 	curve *curves.Curve
 	hash  hash.Hash
@@ -38,7 +37,7 @@ type PartialEvaluation struct {
 	pk PublicKeyShare
 	// TODO: Replace with suitable types.
 	Eval  curves.Point
-	Proof []byte
+	Proof *Proof
 }
 
 type PublicKey curves.Point
@@ -67,21 +66,21 @@ func NewDDHTVRF(t uint32, n uint32, curve *curves.Curve, hash hash.Hash) *DDHTVR
 func (t *DDHTVRF) PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*PartialEvaluation, error) {
 	h := t.curve.Point.Hash(m)
 	phi := h.Mul(sk)
-	// TODO: proof := t.ZKP.Prove(phi, sk, pk)
+	proof := t.ProveEq(phi, m, sk, pk)
 	eval := PartialEvaluation{
 		pk:    pk,
 		Eval:  phi,
-		Proof: nil,
+		Proof: proof,
 	}
 
 	return &eval, nil
 }
 
-func (t *DDHTVRF) Verify(pk PublicKey, m Message, eval Evaluation) (bool, error) {
+func (t *DDHTVRF) Verify(eval Evaluation) (bool, error) {
 	correctEvals := make([]PartialEvaluation, 0)
-	for _, eval := range eval.Proof {
-		// TODO: Check if t.ZKP.Verify(eval.Proof, eval.Eval, eval.pk)
-		correctEvals = append(correctEvals, eval)
+	for _, e := range eval.Proof {
+		t.VerifyEq(e.Eval, *e.pk.Value, e.Proof)
+		correctEvals = append(correctEvals, e)
 	}
 
 	if eval.Eval.Equal(t.combineEvaluations(correctEvals)) {
@@ -97,9 +96,9 @@ func (t *DDHTVRF) Combine(evals []PartialEvaluation) (*Evaluation, error) {
 	}
 
 	correctEvals := make([]PartialEvaluation, 0)
-	for _, eval := range evals {
-		// TODO: Check if t.ZKP.Verify(eval.Proof, eval.Eval, eval.pk)
-		correctEvals = append(correctEvals, eval)
+	for _, e := range evals {
+		t.VerifyEq(e.Eval, *e.pk.Value, e.Proof)
+		correctEvals = append(correctEvals, e)
 	}
 	if len(correctEvals) < int(t.t) {
 		return nil, errors.New("not enough correct partial evaluations")

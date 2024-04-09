@@ -41,7 +41,7 @@ func (t *DDHTVRF) ProveEq(phi curves.Point, m Message, sk SecretKeyShare, pk Pub
 	return &Proof{res, ch, g}
 }
 
-func (t *DDHTVRF) VerifyEq(phi curves.Point, sk SecretKeyShare, pk curves.Point, proof *Proof) bool {
+func (t *DDHTVRF) VerifyEq(phi curves.Point, pk curves.Point, proof *Proof) bool {
 	res := proof.Res
 	ch := proof.Ch
 	g := proof.g
