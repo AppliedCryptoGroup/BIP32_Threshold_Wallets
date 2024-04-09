@@ -17,7 +17,7 @@ type TVRF interface {
 	// Verify verifies the evaluation of the TVRF on the given message.
 	Verify(eval Evaluation) (bool, error)
 	// Combine combines at least t partial evaluations to compute the final evaluation of the TVRF.
-	Combine(evals []PartialEvaluation) (*Evaluation, error)
+	Combine(evals []*PartialEvaluation) (*Evaluation, error)
 }
 
 type DDHTVRF struct {
