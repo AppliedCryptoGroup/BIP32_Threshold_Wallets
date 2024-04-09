@@ -17,8 +17,8 @@ type Proof struct {
 
 // dleq: log_{g}(g^x) == log_{h}(h^x)
 // g = hash(m), x = priKeyShare, h = base point
-// g^x = phi, h^x = pk,
-func (t *DDHTVRF) ProveEq(phi curves.Point, m Message, sk SecretKeyShare, pk PublicKeyShare) *Proof {
+// g^x = phi, h^x = PubKeyShare,
+func (t *DDHTVRF) proveEq(phi curves.Point, m Message, sk SecretKeyShare, pk PublicKeyShare) *Proof {
 	g := t.curve.Point.Hash(m)
 	r := t.curve.Scalar.Random(rand.Reader)
 	com1 := g.Mul(r)
@@ -41,20 +41,20 @@ func (t *DDHTVRF) ProveEq(phi curves.Point, m Message, sk SecretKeyShare, pk Pub
 	return &Proof{res, ch, g}
 }
 
-func (t *DDHTVRF) VerifyEq(phi curves.Point, pk curves.Point, proof *Proof) bool {
+func (t *DDHTVRF) verifyEq(phi curves.Point, pk PublicKeyShare, proof *Proof) bool {
 	res := proof.Res
 	ch := proof.Ch
 	g := proof.g
 	rG := g.Mul(res)
 	rH := t.curve.ScalarBaseMult(res)
 	cxG := phi.Mul(ch)
-	cxH := pk.Mul(ch)
+	cxH := (*pk.Value).Mul(ch)
 	R := rG.Add(cxG)
 	Rp := rH.Add(cxH)
 
 	var marshaledValue []byte
 	phiMar, _ := pointMarshalBinary(phi)
-	pkMar, _ := pointMarshalBinary(pk)
+	pkMar, _ := pointMarshalBinary(*pk.Value)
 	com1Mar, _ := pointMarshalBinary(R)
 	com2Mar, _ := pointMarshalBinary(Rp)
 	marshaledValue = append(marshaledValue, phiMar...)

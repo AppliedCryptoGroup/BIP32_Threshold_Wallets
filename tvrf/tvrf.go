@@ -30,11 +30,11 @@ type DDHTVRF struct {
 
 type Evaluation struct {
 	Eval  curves.Point
-	Proof []PartialEvaluation
+	Proof []*PartialEvaluation
 }
 
 type PartialEvaluation struct {
-	pk PublicKeyShare
+	PubKeyShare PublicKeyShare
 	// TODO: Replace with suitable types.
 	Eval  curves.Point
 	Proof *Proof
@@ -66,21 +66,22 @@ func NewDDHTVRF(t uint32, n uint32, curve *curves.Curve, hash hash.Hash) *DDHTVR
 func (t *DDHTVRF) PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*PartialEvaluation, error) {
 	h := t.curve.Point.Hash(m)
 	phi := h.Mul(sk)
-	proof := t.ProveEq(phi, m, sk, pk)
+	proof := t.proveEq(phi, m, sk, pk)
 	eval := PartialEvaluation{
-		pk:    pk,
-		Eval:  phi,
-		Proof: proof,
+		PubKeyShare: pk,
+		Eval:        phi,
+		Proof:       proof,
 	}
 
 	return &eval, nil
 }
 
 func (t *DDHTVRF) Verify(eval Evaluation) (bool, error) {
-	correctEvals := make([]PartialEvaluation, 0)
+	correctEvals := make([]*PartialEvaluation, 0)
 	for _, e := range eval.Proof {
-		t.VerifyEq(e.Eval, *e.pk.Value, e.Proof)
-		correctEvals = append(correctEvals, e)
+		if t.verifyEq(e.Eval, e.PubKeyShare, e.Proof) {
+			correctEvals = append(correctEvals, e)
+		}
 	}
 
 	if eval.Eval.Equal(t.combineEvaluations(correctEvals)) {
@@ -90,15 +91,16 @@ func (t *DDHTVRF) Verify(eval Evaluation) (bool, error) {
 	}
 }
 
-func (t *DDHTVRF) Combine(evals []PartialEvaluation) (*Evaluation, error) {
+func (t *DDHTVRF) Combine(evals []*PartialEvaluation) (*Evaluation, error) {
 	if len(evals) < int(t.t) {
 		return nil, errors.New("not enough partial evaluations, need at least t evaluations to combine")
 	}
 
-	correctEvals := make([]PartialEvaluation, 0)
+	correctEvals := make([]*PartialEvaluation, 0)
 	for _, e := range evals {
-		t.VerifyEq(e.Eval, *e.pk.Value, e.Proof)
-		correctEvals = append(correctEvals, e)
+		if t.verifyEq(e.Eval, e.PubKeyShare, e.Proof) {
+			correctEvals = append(correctEvals, e)
+		}
 	}
 	if len(correctEvals) < int(t.t) {
 		return nil, errors.New("not enough correct partial evaluations")
@@ -112,16 +114,20 @@ func (t *DDHTVRF) Combine(evals []PartialEvaluation) (*Evaluation, error) {
 	}, nil
 }
 
-func (t *DDHTVRF) combineEvaluations(evals []PartialEvaluation) curves.Point {
+func (t *DDHTVRF) VerifyPartialEval(eval *PartialEvaluation) bool {
+	return t.verifyEq(eval.Eval, eval.PubKeyShare, eval.Proof)
+}
+
+func (t *DDHTVRF) combineEvaluations(evals []*PartialEvaluation) curves.Point {
 	indicesSet := make([]int, 0)
 	for _, eval := range evals {
-		indicesSet = append(indicesSet, int(eval.pk.Idx))
+		indicesSet = append(indicesSet, int(eval.PubKeyShare.Idx))
 	}
 
 	combinedEval := t.curve.Point.Identity() // TODO does this correspond to 1?
 	// Compute combinedEval = \prod eval_i^{\lambda_i}
 	for _, eval := range evals {
-		lambda := t.lagrangeCoefficient(int(eval.pk.Idx), indicesSet)
+		lambda := t.lagrangeCoefficient(int(eval.PubKeyShare.Idx), indicesSet)
 		combinedEval = combinedEval.Add(eval.Eval.Mul(lambda))
 	}
 
@@ -164,7 +170,7 @@ func ShamirShareToKeyPair(curve *curves.Curve, secretShare *v1.ShamirShare, pubS
 
 	pkPoint, _ := curve.Point.Set(pubShare.X, pubShare.Y)
 	pk := &PublicKeyShare{
-		Idx:   0,
+		Idx:   secretShare.Identifier,
 		Value: &pkPoint,
 	}
 
