@@ -17,3 +17,14 @@ type State struct {
 	nodeIdx   uint32 // Index of the node in the derivation tree.
 	chainCode []byte
 }
+
+func NewNode(index uint32, chainCode []byte, sk *SecretKey, pk *PublicKey) Node {
+	return Node{
+		state: State{
+			nodeIdx:   index,
+			chainCode: chainCode,
+		},
+		secretKey: sk,
+		publicKey: pk,
+	}
+}

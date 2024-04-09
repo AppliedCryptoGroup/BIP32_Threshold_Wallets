@@ -97,7 +97,15 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 				m.(*minogrpc.Minogrpc).GetCertificateChain())
 		}
 
-		device, pubkey := node.NewDevice(i, pubShares[uint32(i)+1].Point, privShares[uint32(i)+1], pubKeyGlob, index, chaincode, mino.(*minogrpc.Minogrpc))
+		device, pubkey := node.NewDevice(
+			i,
+			pubShares[uint32(i)+1].Point,
+			privShares[uint32(i)+1].ShamirShare,
+			pubKeyGlob,
+			index,
+			chaincode,
+			mino.(*minogrpc.Minogrpc),
+		)
 
 		pubkeys[i] = pubkey
 		devices[i] = device

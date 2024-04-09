@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/btcsuite/btcd v0.21.0-beta.0.20201114000516-e9c7a5ac6401
 	github.com/coinbase/kryptology v1.8.0
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
 	go.dedis.ch/dela v0.0.0-20231011144949-4677467c030c
 	go.dedis.ch/kyber/v3 v3.1.0
@@ -24,7 +25,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/opentracing-contrib/go-grpc v0.0.0-20200813121455-4a6760c71486 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.5.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

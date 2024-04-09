@@ -6,7 +6,6 @@ import (
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	v1 "github.com/coinbase/kryptology/pkg/sharing/v1"
-	"github.com/coinbase/kryptology/pkg/tecdsa/gg20/dealer"
 	"go.dedis.ch/dela/dkg/pedersen/types"
 	"go.dedis.ch/dela/mino"
 	"go.dedis.ch/dela/serde"
@@ -18,7 +17,7 @@ import (
 var suite = suites.MustFind("Ed25519")
 var curve = btcec.S256()
 
-type SecretKeyShare *dealer.Share
+type SecretKeyShare *v1.ShamirShare
 type PublicKeyShare *curves.EcPoint
 
 // Device represents a secret shared non-hardened node.
@@ -28,7 +27,7 @@ type Device struct {
 	deviceIdx       int // Index of the device with respect to the secret sharing.
 	t               uint32
 	n               uint32
-	secretKeyShare  *v1.ShamirShare
+	secretKeyShare  SecretKeyShare
 	publicKeyShare  PublicKeyShare
 	publicKeyGlobal PublicKey // Global public key
 
@@ -51,7 +50,7 @@ func NewDevice(idx int, pk PublicKeyShare, sk SecretKeyShare, pkG PublicKey, ind
 	return Device{
 		state:           state,
 		deviceIdx:       idx,
-		secretKeyShare:  sk.ShamirShare,
+		secretKeyShare:  sk,
 		publicKeyShare:  pk,
 		publicKeyGlobal: pkG,
 		privkey:         privkey,
@@ -87,6 +86,12 @@ func (d *Device) RandSk(rho curves.Element) *v1.ShamirShare {
 		Identifier: uint32(d.deviceIdx),
 		Value:      skPrime,
 	}
+}
+
+// KeyPair returns the device's key pair.
+// Should only be used for reusing this key-pair for the TVFR.
+func (d *Device) KeyPair() (SecretKeyShare, PublicKeyShare) {
+	return d.secretKeyShare, d.publicKeyShare
 }
 
 // Computes ak_i = H(rho || i)
