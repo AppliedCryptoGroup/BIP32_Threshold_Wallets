@@ -1,6 +1,7 @@
 package derivation
 
 import (
+	"crypto/sha256"
 	"encoding/binary"
 	"math/rand"
 
@@ -83,13 +84,9 @@ func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Nod
 func (td *TVRFDerivation) genECDSAKeyPair(combinedEval *tvrf.Evaluation) (*curves.Scalar, *curves.Point) {
 	seed := combinedEval.Eval.ToAffineUncompressed()
 	// TODO: More secure way of getting the randomness seed from the evaluation than this?
-	// Here, we loose a lot of entropy.
-	// Maybe rather use this?
-	// hash := sha256.Sum256(seed)
-	// seedInt := binary.BigEndian.Uint64(hash[:8])
-	// src := rand.NewSource(int64(seedInt))
-
-	src := rand.NewSource(int64(binary.BigEndian.Uint64(seed)))
+	hash := sha256.Sum256(seed)
+	seedInt := binary.BigEndian.Uint64(hash[:8])
+	src := rand.NewSource(int64(seedInt))
 	rng := rand.New(src)
 
 	sk := td.curve.Scalar.Random(rng)
