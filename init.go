@@ -85,7 +85,11 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 
 	pubkeys := make([]kyber.Point, len(minos))
 
-	pubShares, privShares, pubKeyGlob := GenSk(uint32(t), uint32(n))
+	pubShares, privShares, pkEcPoint := GenSk(uint32(t), uint32(n))
+	pubkeyGlobal, err := curves.K256().Point.Set(pkEcPoint.X, pkEcPoint.Y)
+	if err != nil {
+		panic(err)
+	}
 
 	seedBytes, _ := hex.DecodeString(seed)
 	chaincode, _ := NewMasterKey(seedBytes)
@@ -97,7 +101,15 @@ func InitDevices(t int, n int) (CollectiveAuthority, []node.Device) {
 				m.(*minogrpc.Minogrpc).GetCertificateChain())
 		}
 
-		device, pubkey := node.NewDevice(i, pubShares[uint32(i)+1].Point, privShares[uint32(i)+1], pubKeyGlob, index, chaincode, mino.(*minogrpc.Minogrpc))
+		device, pubkey := node.NewDevice(
+			i,
+			pubShares[uint32(i)+1].Point,
+			privShares[uint32(i)+1].ShamirShare,
+			&pubkeyGlobal,
+			index,
+			chaincode,
+			mino.(*minogrpc.Minogrpc),
+		)
 
 		pubkeys[i] = pubkey
 		devices[i] = device

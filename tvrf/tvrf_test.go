@@ -67,8 +67,7 @@ func TestTVRF(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the evaluation
-		valid, err := ddhTvrf.Verify(*eval)
-		assert.NoError(t, err)
+		valid := ddhTvrf.Verify(*eval)
 		assert.Truef(t, valid, "evaluation verification failed")
 	})
 

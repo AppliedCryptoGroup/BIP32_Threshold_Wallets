@@ -15,7 +15,7 @@ type TVRF interface {
 	// PEval computes the partial evaluation of the TVRF.
 	PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*PartialEvaluation, error)
 	// Verify verifies the evaluation of the TVRF on the given message.
-	Verify(eval Evaluation) (bool, error)
+	Verify(eval Evaluation) bool
 	// Combine combines at least t partial evaluations to compute the final evaluation of the TVRF.
 	Combine(evals []*PartialEvaluation) (*Evaluation, error)
 }
@@ -76,7 +76,7 @@ func (t *DDHTVRF) PEval(m Message, sk SecretKeyShare, pk PublicKeyShare) (*Parti
 	return &eval, nil
 }
 
-func (t *DDHTVRF) Verify(eval Evaluation) (bool, error) {
+func (t *DDHTVRF) Verify(eval Evaluation) bool {
 	correctEvals := make([]*PartialEvaluation, 0)
 	for _, e := range eval.Proof {
 		if t.verifyEq(e.Eval, e.PubKeyShare, e.Proof) {
@@ -85,9 +85,9 @@ func (t *DDHTVRF) Verify(eval Evaluation) (bool, error) {
 	}
 
 	if eval.Eval.Equal(t.combineEvaluations(correctEvals)) {
-		return true, nil
+		return true
 	} else {
-		return false, nil
+		return false
 	}
 }
 
