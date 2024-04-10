@@ -2,6 +2,7 @@ package derivation
 
 import (
 	"encoding/binary"
+	"math/rand"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/pkg/errors"
@@ -33,12 +34,12 @@ func NewTVRFDerivation(curve *curves.Curve, devices []node.Device, tvrf tvrf.TVR
 	}
 }
 
-func (td TVRFDerivation) DeriveNonHardenedChild(childIdx uint32) (error, []node.Device) {
+func (td *TVRFDerivation) DeriveNonHardenedChild(childIdx uint32) (error, []node.Device) {
 	nonHardDerivation := NonHardDerivation{devices: td.devices}
 	return nonHardDerivation.DeriveNonHardenedChild(childIdx)
 }
 
-func (td TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Node) {
+func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Node) {
 	// convert childIdx to byte array
 	childIdxBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(childIdxBytes, childIdx)
@@ -73,8 +74,26 @@ func (td TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Node
 		return errors.New("verification of combined evaluation failed"), nil
 	}
 
-	// sk,pk= ECDSAKeyGen(combinedEval)
-	// node := node.NewNode(sk, pk)
+	sk, pk := td.genECDSAKeyPair(combinedEval)
+	child := node.NewNode(childIdx, nil, sk, pk)
 
-	return errors.New("not implemented"), nil
+	return errors.New("not implemented"), &child
+}
+
+func (td *TVRFDerivation) genECDSAKeyPair(combinedEval *tvrf.Evaluation) (*curves.Scalar, *curves.Point) {
+	seed := combinedEval.Eval.ToAffineUncompressed()
+	// TODO: More secure way of getting the randomness seed from the evaluation than this?
+	// Here, we loose a lot of entropy.
+	// Maybe rather use this?
+	// hash := sha256.Sum256(seed)
+	// seedInt := binary.BigEndian.Uint64(hash[:8])
+	// src := rand.NewSource(int64(seedInt))
+
+	src := rand.NewSource(int64(binary.BigEndian.Uint64(seed)))
+	rng := rand.New(src)
+
+	sk := td.curve.Scalar.Random(rng)
+	pk := td.curve.Scalar.Point()
+
+	return &sk, &pk
 }

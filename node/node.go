@@ -2,15 +2,15 @@ package node
 
 import "github.com/coinbase/kryptology/pkg/core/curves"
 
-type PublicKey *curves.EcPoint
-type SecretKey *curves.Element
+type PublicKey *curves.Point
+type SecretKey *curves.Scalar
 
 // Node represents a hardened node.
 type Node struct {
 	state State
 
-	secretKey *SecretKey
-	publicKey *PublicKey
+	secretKey SecretKey
+	publicKey PublicKey
 }
 
 type State struct {
@@ -18,7 +18,7 @@ type State struct {
 	chainCode []byte
 }
 
-func NewNode(index uint32, chainCode []byte, sk *SecretKey, pk *PublicKey) Node {
+func NewNode(index uint32, chainCode []byte, sk SecretKey, pk PublicKey) Node {
 	return Node{
 		state: State{
 			nodeIdx:   index,
