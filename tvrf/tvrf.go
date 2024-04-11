@@ -1,12 +1,12 @@
 package tvrf
 
 import (
-	"errors"
 	"hash"
 	"math/big"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	v1 "github.com/coinbase/kryptology/pkg/sharing/v1"
+	"github.com/pkg/errors"
 )
 
 // The implementation of the DDH-based TVRF as proposed in https://eprint.iacr.org/2020/096.
@@ -163,13 +163,14 @@ func (t *DDHTVRF) lagrangeCoefficient(idx int, indicesSet []int) curves.Scalar {
 
 func ShamirShareToKeyPair(curve *curves.Curve, secretShare *v1.ShamirShare, pubShare *curves.EcPoint) (error, SecretKeyShare, *PublicKeyShare) {
 	sk, err := curve.Scalar.SetBytes(secretShare.Value.Bytes())
+	// FIXME: This seems to fail sometimes with error "invalid length"
 	if err != nil {
-		return err, nil, nil
+		return errors.Wrap(err, "setting secret key scalar"), nil, nil
 	}
 
 	pkPoint, err := curve.Point.Set(pubShare.X, pubShare.Y)
 	if err != nil {
-		return errors.New("setting public key coords"), nil, nil
+		return errors.Wrap(err, "setting public key coords"), nil, nil
 
 	}
 	pk := &PublicKeyShare{
