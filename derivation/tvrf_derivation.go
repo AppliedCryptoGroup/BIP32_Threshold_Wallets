@@ -93,7 +93,7 @@ func (td *TVRFDerivation) genECDSAKeyPair(combinedEval *tvrf.Evaluation) (*curve
 	rng := rand.New(src)
 
 	sk := td.curve.Scalar.Random(rng)
-	pk := td.curve.Scalar.Point()
+	pk := td.curve.ScalarBaseMult(sk)
 
 	return &sk, &pk
 }
