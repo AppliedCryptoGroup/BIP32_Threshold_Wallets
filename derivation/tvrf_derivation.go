@@ -78,7 +78,7 @@ func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Nod
 	sk, pk := td.genECDSAKeyPair(combinedEval)
 	child := node.NewNode(childIdx, nil, sk, pk)
 
-	return errors.New("not implemented"), &child
+	return nil, &child
 }
 
 func (td *TVRFDerivation) genECDSAKeyPair(combinedEval *tvrf.Evaluation) (*curves.Scalar, *curves.Point) {

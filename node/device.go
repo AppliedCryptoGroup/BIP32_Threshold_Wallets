@@ -37,7 +37,10 @@ type Device struct {
 }
 
 func NewDevice(idx int, pk PublicKeyShare, sk SecretKeyShare, pkG PublicKey, index uint32, ch []byte, m mino.Mino) (Device, kyber.Point) {
-	factory := types.NewMessageFactory(m.GetAddressFactory())
+	var factory serde.Factory
+	if m != nil {
+		factory = types.NewMessageFactory(m.GetAddressFactory())
+	}
 
 	privkey := suite.Scalar().Pick(suite.RandomStream())
 	pubkey := suite.Point().Mul(privkey, nil)

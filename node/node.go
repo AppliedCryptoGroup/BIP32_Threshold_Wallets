@@ -10,7 +10,7 @@ type Node struct {
 	state State
 
 	secretKey SecretKey
-	publicKey PublicKey
+	PublicKey PublicKey
 }
 
 type State struct {
@@ -25,6 +25,6 @@ func NewNode(index uint32, chainCode []byte, sk SecretKey, pk PublicKey) Node {
 			chainCode: chainCode,
 		},
 		secretKey: sk,
-		publicKey: pk,
+		PublicKey: pk,
 	}
 }

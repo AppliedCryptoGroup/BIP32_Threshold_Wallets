@@ -168,7 +168,11 @@ func ShamirShareToKeyPair(curve *curves.Curve, secretShare *v1.ShamirShare, pubS
 		return err, nil, nil
 	}
 
-	pkPoint, _ := curve.Point.Set(pubShare.X, pubShare.Y)
+	pkPoint, err := curve.Point.Set(pubShare.X, pubShare.Y)
+	if err != nil {
+		return errors.New("setting public key coords"), nil, nil
+
+	}
 	pk := &PublicKeyShare{
 		Idx:   secretShare.Identifier,
 		Value: &pkPoint,
