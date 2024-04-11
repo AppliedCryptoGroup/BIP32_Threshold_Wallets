@@ -110,7 +110,7 @@ func (t *DDHTVRF) Combine(evals []*PartialEvaluation) (*Evaluation, error) {
 
 	return &Evaluation{
 		Eval:  combinedEval,
-		Proof: nil,
+		Proof: correctEvals,
 	}, nil
 }
 
@@ -140,8 +140,7 @@ func (t *DDHTVRF) lagrangeCoefficient(idx int, indicesSet []int) curves.Scalar {
 	lambda := t.curve.Scalar.One() // TODO does this correspond to 1?
 
 	for _, k := range indicesSet {
-		// Should never happen as 0 is not in the set.
-		if k == 0 {
+		if k == 0 || k == idx {
 			continue
 		}
 
@@ -168,7 +167,11 @@ func ShamirShareToKeyPair(curve *curves.Curve, secretShare *v1.ShamirShare, pubS
 		return err, nil, nil
 	}
 
-	pkPoint, _ := curve.Point.Set(pubShare.X, pubShare.Y)
+	pkPoint, err := curve.Point.Set(pubShare.X, pubShare.Y)
+	if err != nil {
+		return errors.New("setting public key coords"), nil, nil
+
+	}
 	pk := &PublicKeyShare{
 		Idx:   secretShare.Identifier,
 		Value: &pkPoint,

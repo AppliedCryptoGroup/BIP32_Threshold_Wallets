@@ -3,6 +3,7 @@ package derivation
 import (
 	"crypto/sha256"
 	"encoding/binary"
+	"log"
 	"math/rand"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
@@ -63,22 +64,24 @@ func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Nod
 
 	// TODO: Mock sending evaluations to the child node with some networking delay
 
-	// Combine the evaluations.
+	log.Printf("Combining evaluations")
 	combinedEval, err := td.tvrf.Combine(evals)
 	if err != nil {
 		return errors.Wrap(err, "combining evaluations"), nil
 	}
+	log.Printf("Combined evaluation: %x", combinedEval.Eval.ToAffineCompressed())
 
-	// Verify the combined evaluation.
+	log.Printf("Verifying combined evaluation")
 	valid := td.tvrf.Verify(*combinedEval)
 	if !valid {
 		return errors.New("verification of combined evaluation failed"), nil
 	}
 
+	log.Printf("Generating ECDSA key pair for child node")
 	sk, pk := td.genECDSAKeyPair(combinedEval)
 	child := node.NewNode(childIdx, nil, sk, pk)
 
-	return errors.New("not implemented"), &child
+	return nil, &child
 }
 
 func (td *TVRFDerivation) genECDSAKeyPair(combinedEval *tvrf.Evaluation) (*curves.Scalar, *curves.Point) {
@@ -90,7 +93,7 @@ func (td *TVRFDerivation) genECDSAKeyPair(combinedEval *tvrf.Evaluation) (*curve
 	rng := rand.New(src)
 
 	sk := td.curve.Scalar.Random(rng)
-	pk := td.curve.Scalar.Point()
+	pk := td.curve.ScalarBaseMult(sk)
 
 	return &sk, &pk
 }
