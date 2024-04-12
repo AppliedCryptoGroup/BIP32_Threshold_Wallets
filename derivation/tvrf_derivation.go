@@ -4,11 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"math/rand"
-	"runtime"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/pkg/errors"
-	"github.com/prometheus/common/log"
 
 	"bip32_threshold_wallet/node"
 	"bip32_threshold_wallet/tvrf"
@@ -49,11 +47,6 @@ func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Nod
 
 	evals := make([]*tvrf.PartialEvaluation, len(td.devices))
 
-	// TODO: Parallelize this
-	numCPU := runtime.NumCPU()
-	if len(td.devices) > numCPU {
-		log.Warnf("Number of devices (%d) is greater than number of CPUs (%d)", len(td.devices), numCPU)
-	}
 	for i, d := range td.devices {
 		dSk, dPk := d.KeyPair()
 		err, sk, pk := tvrf.ShamirShareToKeyPair(td.curve, dSk, dPk)

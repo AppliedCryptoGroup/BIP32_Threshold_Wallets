@@ -1,10 +1,11 @@
 package bench
 
 import (
-	"log"
+	"runtime"
 	"testing"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
+	"github.com/prometheus/common/log"
 	"golang.org/x/crypto/sha3"
 
 	"bip32_threshold_wallet/derivation"
@@ -25,8 +26,12 @@ var (
 )
 
 func init() {
-	log.Printf("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
-	log.Printf("t: %d, n: %d, num children: %d, reuse keypair: %t", threshold, numParties, numChildren, reuseKeyPair)
+	log.Info("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
+	log.Infof("t: %d, n: %d, num children: %d, reuse keypair: %t", threshold, numParties, numChildren, reuseKeyPair)
+	numCPU := runtime.NumCPU()
+	if int(numParties) > numCPU {
+		log.Warnf("Number of devices (%d) is greater than number of CPUs (%d)", numParties, numCPU)
+	}
 }
 
 func BenchmarkTVRFDerivation(b *testing.B) {
