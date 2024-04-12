@@ -100,7 +100,6 @@ func (td *TVRFDerivation) parallelTVRFEval(childIdxBytes []byte) ([]*tvrf.Partia
 		go func() {
 			for d := range devicesChan {
 				dSk, dPk := d.KeyPair()
-				// TODO: This might be improved as the tvrf key-pair conversion could be done in beforehand.
 				err, sk, pk := tvrf.ShamirShareToKeyPair(td.curve, dSk, dPk)
 				if err != nil {
 					errorsChan <- errors.Wrap(err, "converting key pairs")

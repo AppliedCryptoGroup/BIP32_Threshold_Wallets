@@ -17,7 +17,7 @@ var (
 	curve  = curves.K256()
 	sha256 = sha3.New256()
 
-	threshold    = uint32(20)
+	threshold    = uint32(99)
 	numParties   = uint32(200)
 	reuseKeyPair = true
 
