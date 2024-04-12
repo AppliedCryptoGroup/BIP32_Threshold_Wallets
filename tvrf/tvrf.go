@@ -162,8 +162,8 @@ func (t *DDHTVRF) lagrangeCoefficient(idx int, indicesSet []int) curves.Scalar {
 }
 
 func ShamirShareToKeyPair(curve *curves.Curve, secretShare *v1.ShamirShare, pubShare *curves.EcPoint) (error, SecretKeyShare, *PublicKeyShare) {
-	sk, err := curve.Scalar.SetBytes(secretShare.Value.Bytes())
-	// FIXME: This seems to fail sometimes with error "invalid length"
+	sSBytes := bigIntTo32Bytes(secretShare.Value.BigInt())
+	sk, err := curve.Scalar.SetBytes(sSBytes)
 	if err != nil {
 		return errors.Wrap(err, "setting secret key scalar"), nil, nil
 	}
@@ -179,4 +179,17 @@ func ShamirShareToKeyPair(curve *curves.Curve, secretShare *v1.ShamirShare, pubS
 	}
 
 	return nil, sk, pk
+}
+
+func bigIntTo32Bytes(n *big.Int) []byte {
+	b := n.Bytes()
+	switch {
+	case len(b) < 32:
+		padding := make([]byte, 32-len(b))
+		return append(padding, b...)
+	case len(b) > 32:
+		panic("bigIntTo32Bytes: input is too large")
+	default:
+		return b
+	}
 }
