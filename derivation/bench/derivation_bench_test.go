@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
-	"github.com/prometheus/common/log"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/sha3"
 
 	"bip32_threshold_wallet/derivation"
@@ -17,17 +17,17 @@ var (
 	curve  = curves.K256()
 	sha256 = sha3.New256()
 
-	threshold    = uint32(5)
-	numParties   = uint32(20)
+	threshold    = uint32(20)
+	numParties   = uint32(200)
 	reuseKeyPair = true
 
 	// Number of children to derive per benchmark evaluation.
-	numChildren = uint32(10)
+	numChildren = uint32(1)
 )
 
 func init() {
 	log.Info("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
-	log.Infof("t: %d, n: %d, num children: %d, reuse keypair: %t", threshold, numParties, numChildren, reuseKeyPair)
+	log.Infof("t: %d, n: %d, num children: %d, reuse key-pair: %t", threshold, numParties, numChildren, reuseKeyPair)
 	numCPU := runtime.NumCPU()
 	if int(numParties) > numCPU {
 		log.Warnf("Number of devices (%d) is greater than number of CPUs (%d)", numParties, numCPU)

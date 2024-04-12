@@ -6,7 +6,6 @@ require (
 	github.com/btcsuite/btcd v0.21.0-beta.0.20201114000516-e9c7a5ac6401
 	github.com/coinbase/kryptology v1.8.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/common v0.10.0
 	github.com/stretchr/testify v1.8.1
 	go.dedis.ch/dela v0.0.0-20231011144949-4677467c030c
 	go.dedis.ch/kyber/v3 v3.1.0
