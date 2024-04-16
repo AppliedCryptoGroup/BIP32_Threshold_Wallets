@@ -141,7 +141,7 @@ func (t *DDHTVRF) combineEvaluations(evals []*PartialEvaluation) curves.Point {
 		indicesSet = append(indicesSet, int(eval.PubKeyShare.Idx))
 	}
 
-	combinedEval := t.curve.Point.Identity() // TODO does this correspond to 1?
+	combinedEval := t.curve.Point.Identity()
 	// Compute combinedEval = \prod eval_i^{\lambda_i}
 	for _, eval := range evals {
 		lambda := t.lagrangeCoefficient(int(eval.PubKeyShare.Idx), indicesSet)
@@ -154,7 +154,7 @@ func (t *DDHTVRF) combineEvaluations(evals []*PartialEvaluation) curves.Point {
 // lagrangeCoefficient computes the Lagrange coefficient for the given index at the 0 evaluation.
 func (t *DDHTVRF) lagrangeCoefficient(idx int, indicesSet []int) curves.Scalar {
 	// \prod_{k\in indicesSet\setminus idx} idx / (idx-k)
-	lambda := t.curve.Scalar.One() // TODO does this correspond to 1?
+	lambda := t.curve.Scalar.One()
 
 	for _, k := range indicesSet {
 		if k == idx {
