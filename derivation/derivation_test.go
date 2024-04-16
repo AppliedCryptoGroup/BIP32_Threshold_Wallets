@@ -6,6 +6,7 @@ import (
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"bip32_threshold_wallet/derivation"
 	"bip32_threshold_wallet/tvrf"
@@ -25,18 +26,18 @@ func TestNewTVRFDerivation(t *testing.T) {
 	deriv := derivation.NewTVRFDerivation(curve, devices, ddhTvrf, true)
 
 	err, childNode1 := deriv.DeriveHardenedChild(1)
-	assert.NoError(t, err)
-	assert.NotNil(t, childNode1)
+	require.NoError(t, err)
+	require.NotNil(t, childNode1)
 
 	err, childNode1Clone := deriv.DeriveHardenedChild(1)
-	assert.NoError(t, err)
-	assert.NotNil(t, childNode1Clone)
+	require.NoError(t, err)
+	require.NotNil(t, childNode1Clone)
 
 	assert.Truef(t, (*childNode1.PublicKey).Equal(*childNode1Clone.PublicKey), "Public keys should be the same")
 
 	err, childNode2 := deriv.DeriveHardenedChild(2)
-	assert.NoError(t, err)
-	assert.NotNil(t, childNode2)
+	require.NoError(t, err)
+	require.NotNil(t, childNode2)
 
 	assert.Falsef(t, (*childNode1.PublicKey).Equal(*childNode2.PublicKey), "Public keys should be different")
 }
