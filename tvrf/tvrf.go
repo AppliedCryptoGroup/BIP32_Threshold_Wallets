@@ -3,7 +3,6 @@ package tvrf
 import (
 	"hash"
 	"math/big"
-	"sort"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	v1 "github.com/coinbase/kryptology/pkg/sharing/v1"
@@ -137,11 +136,6 @@ func (t *DDHTVRF) VerifyPartialEval(eval *PartialEvaluation) bool {
 }
 
 func (t *DDHTVRF) combineEvaluations(evals []*PartialEvaluation) curves.Point {
-	// Sort the evaluations by their index.
-	sort.Slice(evals, func(i, j int) bool {
-		return evals[i].PubKeyShare.Idx < evals[j].PubKeyShare.Idx
-	})
-
 	indicesSet := make([]int, 0)
 	for _, eval := range evals {
 		indicesSet = append(indicesSet, int(eval.PubKeyShare.Idx))
@@ -151,7 +145,7 @@ func (t *DDHTVRF) combineEvaluations(evals []*PartialEvaluation) curves.Point {
 	// Compute combinedEval = \prod eval_i^{\lambda_i}
 	for _, eval := range evals {
 		lambda := t.lagrangeCoefficient(int(eval.PubKeyShare.Idx), indicesSet)
-		combinedEval = t.curve.Point.Add(eval.Eval.Mul(lambda))
+		combinedEval = combinedEval.Add(eval.Eval.Mul(lambda))
 	}
 
 	return combinedEval

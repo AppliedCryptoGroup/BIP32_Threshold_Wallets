@@ -34,9 +34,9 @@ func TestNewTVRFDerivation(t *testing.T) {
 
 	assert.Truef(t, (*childNode1.PublicKey).Equal(*childNode1Clone.PublicKey), "Public keys should be the same")
 
-	//err, childNode2 := deriv.DeriveHardenedChild(2)
-	//assert.NoError(t, err)
-	//assert.NotNil(t, childNode2)
-	//
-	//assert.Falsef(t, (*childNode1.PublicKey).Equal(*childNode2.PublicKey), "Public keys should be different")
+	err, childNode2 := deriv.DeriveHardenedChild(2)
+	assert.NoError(t, err)
+	assert.NotNil(t, childNode2)
+
+	assert.Falsef(t, (*childNode1.PublicKey).Equal(*childNode2.PublicKey), "Public keys should be different")
 }
