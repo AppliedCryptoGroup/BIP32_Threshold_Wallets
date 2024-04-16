@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/coinbase/kryptology/pkg/tecdsa/gg20/dealer"
@@ -20,8 +19,14 @@ func GenSharedKey(t uint32, n uint32) (map[uint32]*dealer.PublicShare, map[uint3
 		panic(err)
 	}
 
-	secret, _ := dealer.NewSecret(k256)
-	pkEc, sharesMap, _ := dealer.NewDealerShares(k256, t, n, secret)
+	secret, err := dealer.NewSecret(k256)
+	if err != nil {
+		panic(err)
+	}
+	pkEc, sharesMap, err := dealer.NewDealerShares(k256, t, n, secret)
+	if err != nil {
+		panic(err)
+	}
 	pk, err := curves.K256().Point.Set(pkEc.X, pkEc.Y)
 	if err != nil {
 		panic(err)
@@ -29,12 +34,12 @@ func GenSharedKey(t uint32, n uint32) (map[uint32]*dealer.PublicShare, map[uint3
 	pubSharesMap, _ := dealer.PreparePublicShares(sharesMap)
 
 	// TODO: define logger
-	fmt.Printf("Sharing scheme: Any %d from %d\n", t, n)
-	fmt.Printf("Random secret: (%x)\n\n", secret)
+	//fmt.Printf("Sharing scheme: Any %d from %d\n", t, n)
+	//fmt.Printf("Random secret: (%x)\n\n", secret)
 
-	for i := range sharesMap {
-		fmt.Printf("Share: %x\n", sharesMap[i].Bytes())
-	}
+	//for i := range sharesMap {
+	//	fmt.Printf("Share: %x\n", sharesMap[i].Bytes())
+	//}
 
 	return pubSharesMap, sharesMap, &pk
 }

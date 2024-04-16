@@ -3,11 +3,12 @@ package derivation
 import (
 	"crypto/sha256"
 	"encoding/binary"
-	"log"
 	"math/rand"
+	"runtime"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"bip32_threshold_wallet/node"
 	"bip32_threshold_wallet/tvrf"
@@ -42,46 +43,96 @@ func (td *TVRFDerivation) DeriveNonHardenedChild(childIdx uint32) (error, []node
 }
 
 func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Node) {
-	// convert childIdx to byte array
 	childIdxBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(childIdxBytes, childIdx)
 
+	log.Trace("evaluating TVRF for all devices")
+	evals, err := td.parallelTVRFEval(childIdxBytes)
+
+	log.Trace("combining evaluations")
+	combinedEval, err := td.tvrf.Combine(evals)
+	if err != nil {
+		return errors.Wrap(err, "combining evaluations"), nil
+	}
+	log.Tracef("combined evaluation: %x", combinedEval.Eval.ToAffineCompressed())
+
+	log.Trace("verifying combined evaluation")
+	valid := td.tvrf.Verify(*combinedEval)
+	if !valid {
+		return errors.New("verification of combined evaluation failed"), nil
+	}
+
+	log.Trace("generating ECDSA key pair for child node")
+	sk, pk := td.genECDSAKeyPair(combinedEval)
+	child := node.NewNode(childIdx, nil, sk, pk)
+
+	return nil, &child
+}
+
+func (td *TVRFDerivation) sequentialTVRFEval(childIdxBytes []byte) ([]*tvrf.PartialEvaluation, error) {
 	evals := make([]*tvrf.PartialEvaluation, len(td.devices))
 
 	for i, d := range td.devices {
 		dSk, dPk := d.KeyPair()
 		err, sk, pk := tvrf.ShamirShareToKeyPair(td.curve, dSk, dPk)
 		if err != nil {
-			return errors.Wrap(err, "converting key pairs"), nil
+			return nil, errors.Wrap(err, "converting key pairs")
 		}
 
 		eval, err := td.tvrf.PEval(childIdxBytes, sk, *pk)
 		if err != nil {
-			return errors.Wrap(err, "evaluation failed"), nil
+			return nil, errors.Wrap(err, "evaluation failed")
 		}
 		evals[i] = eval
 	}
 
-	// TODO: Mock sending evaluations to the child node with some networking delay
+	return evals, nil
+}
 
-	log.Printf("Combining evaluations")
-	combinedEval, err := td.tvrf.Combine(evals)
-	if err != nil {
-		return errors.Wrap(err, "combining evaluations"), nil
+func (td *TVRFDerivation) parallelTVRFEval(childIdxBytes []byte) ([]*tvrf.PartialEvaluation, error) {
+	devicesChan := make(chan node.Device, len(td.devices))
+	errorsChan := make(chan error, len(td.devices))
+	evalsChan := make(chan *tvrf.PartialEvaluation, len(td.devices))
+
+	numCPU := runtime.NumCPU()
+
+	for i := 0; i < numCPU; i++ {
+		go func() {
+			for d := range devicesChan {
+				dSk, dPk := d.KeyPair()
+				err, sk, pk := tvrf.ShamirShareToKeyPair(td.curve, dSk, dPk)
+				if err != nil {
+					errorsChan <- errors.Wrap(err, "converting key pairs")
+					return
+				}
+
+				eval, err := td.tvrf.PEval(childIdxBytes, sk, *pk)
+				if err != nil {
+					errorsChan <- errors.Wrap(err, "evaluation failed")
+					return
+				}
+				evalsChan <- eval
+			}
+		}()
 	}
-	log.Printf("Combined evaluation: %x", combinedEval.Eval.ToAffineCompressed())
 
-	log.Printf("Verifying combined evaluation")
-	valid := td.tvrf.Verify(*combinedEval)
-	if !valid {
-		return errors.New("verification of combined evaluation failed"), nil
+	// Send all devices to the goroutines and close the channel to break the loop.
+	for _, d := range td.devices {
+		devicesChan <- d
 	}
+	close(devicesChan)
 
-	log.Printf("Generating ECDSA key pair for child node")
-	sk, pk := td.genECDSAKeyPair(combinedEval)
-	child := node.NewNode(childIdx, nil, sk, pk)
+	evals := make([]*tvrf.PartialEvaluation, len(td.devices))
+	for i := range td.devices {
+		select {
+		case err := <-errorsChan:
+			return nil, err
+		case eval := <-evalsChan:
+			evals[i] = eval
+		}
+	}
+	return evals, nil
 
-	return nil, &child
 }
 
 func (td *TVRFDerivation) genECDSAKeyPair(combinedEval *tvrf.Evaluation) (*curves.Scalar, *curves.Point) {

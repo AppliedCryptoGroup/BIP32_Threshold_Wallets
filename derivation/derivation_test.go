@@ -8,8 +8,8 @@ import (
 	"golang.org/x/crypto/sha3"
 
 	"bip32_threshold_wallet/derivation"
-	"bip32_threshold_wallet/node"
 	"bip32_threshold_wallet/tvrf"
+	"bip32_threshold_wallet/utils"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 )
 
 func TestNewTVRFDerivation(t *testing.T) {
-	devices := createDevices()
+	devices := utils.CreateDevices(threshold, numParties)
 	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, curve, sha256)
 	deriv := derivation.NewTVRFDerivation(curve, devices, ddhTvrf, true)
 
@@ -39,25 +39,4 @@ func TestNewTVRFDerivation(t *testing.T) {
 	assert.NotNil(t, childNode2)
 
 	assert.Falsef(t, (*childNode1.PublicKey).Equal(*childNode2.PublicKey), "Public keys should be different")
-}
-
-func createDevices() []node.Device {
-	pkShares, skShares, pk := node.GenSharedKey(threshold, numParties)
-	chaincode, _ := node.NewMasterChainCode()
-	index := uint32(0x0)
-
-	devices := make([]node.Device, numParties)
-	for i := uint32(0); i < numParties; i++ {
-		device, _ := node.NewDevice(
-			int(i),
-			pkShares[i+1].Point,
-			skShares[i+1].ShamirShare,
-			pk,
-			index,
-			chaincode,
-			nil,
-		)
-		devices[i] = device
-	}
-	return devices
 }
