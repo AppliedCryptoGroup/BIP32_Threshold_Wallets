@@ -1,6 +1,7 @@
 package bench
 
 import (
+	"fmt"
 	"runtime"
 	"testing"
 
@@ -25,18 +26,49 @@ var (
 	numChildren = uint32(1)
 )
 
-func init() {
+type thresholdParam struct {
+	t uint32
+	n uint32
+}
+
+var sharingParams = []thresholdParam{
+	{t: 2, n: 3},
+	{t: 4, n: 10},
+	{t: 40, n: 100},
+	{t: 99, n: 200},
+}
+
+//func init() {
+//	log.Info("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
+//	log.Infof("t: %d, n: %d, num children: %d, reuse key-pair: %t", threshold, numParties, numChildren, reuseKeyPair)
+//	numCPU := runtime.NumCPU()
+//	if int(numParties) > numCPU {
+//		log.Warnf("Number of devices (%d) is greater than number of CPUs (%d)", numParties, numCPU)
+//	}
+//}
+
+func BenchmarkMultipleTVRFDerivations(b *testing.B) {
+	for _, param := range sharingParams {
+		runName := fmt.Sprintf("TVRF Derivation for t=%d,n=%d", param.t, param.n)
+		b.Run(runName, func(b *testing.B) {
+			benchmarkTVRFDerivation(b, param.t, param.n)
+		})
+	}
+}
+
+func BenchmarkTVRFDerivation(b *testing.B) {
 	log.Info("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
 	log.Infof("t: %d, n: %d, num children: %d, reuse key-pair: %t", threshold, numParties, numChildren, reuseKeyPair)
 	numCPU := runtime.NumCPU()
 	if int(numParties) > numCPU {
 		log.Warnf("Number of devices (%d) is greater than number of CPUs (%d)", numParties, numCPU)
 	}
+	benchmarkTVRFDerivation(b, threshold, numParties)
 }
 
-func BenchmarkTVRFDerivation(b *testing.B) {
-	devices := utils.CreateDevices(threshold, numParties)
-	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, curve, sha256, false)
+func benchmarkTVRFDerivation(b *testing.B, t, n uint32) {
+	devices := utils.CreateDevices(t, n)
+	ddhTvrf := tvrf.NewDDHTVRF(t, n, curve, sha256, true)
 	deriv := derivation.NewTVRFDerivation(curve, devices, ddhTvrf, reuseKeyPair)
 
 	b.ResetTimer()
