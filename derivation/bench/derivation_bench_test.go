@@ -36,7 +36,7 @@ func init() {
 
 func BenchmarkTVRFDerivation(b *testing.B) {
 	devices := utils.CreateDevices(threshold, numParties)
-	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, curve, sha256)
+	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, curve, sha256, false)
 	deriv := derivation.NewTVRFDerivation(curve, devices, ddhTvrf, reuseKeyPair)
 
 	b.ResetTimer()
