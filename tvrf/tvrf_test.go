@@ -25,7 +25,7 @@ func TestTVRF(t *testing.T) {
 
 	_, sharesMap, _ := dealer.NewDealerShares(p256ec, threshold, numParties, secret)
 
-	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, p256, sha256)
+	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, p256, sha256, false)
 
 	message := []byte("Hello, World!")
 
