@@ -31,39 +31,24 @@ type thresholdParam struct {
 	n uint32
 }
 
-var sharingParams = []thresholdParam{
+var benchmarkParams = []thresholdParam{
 	{t: 2, n: 3},
 	{t: 4, n: 10},
 	{t: 40, n: 100},
 	{t: 99, n: 200},
 }
 
-//func init() {
-//	log.Info("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
-//	log.Infof("t: %d, n: %d, num children: %d, reuse key-pair: %t", threshold, numParties, numChildren, reuseKeyPair)
-//	numCPU := runtime.NumCPU()
-//	if int(numParties) > numCPU {
-//		log.Warnf("Number of devices (%d) is greater than number of CPUs (%d)", numParties, numCPU)
-//	}
-//}
-
 func BenchmarkMultipleTVRFDerivations(b *testing.B) {
-	for _, param := range sharingParams {
-		runName := fmt.Sprintf("TVRF Derivation for t=%d,n=%d", param.t, param.n)
+	log.Info("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
+	numCPU := runtime.NumCPU()
+	log.Infof("Number of CPUs available: %d", numCPU)
+
+	for _, param := range benchmarkParams {
+		runName := fmt.Sprintf("Run t=%d, n=%d", param.t, param.n)
 		b.Run(runName, func(b *testing.B) {
 			benchmarkTVRFDerivation(b, param.t, param.n)
 		})
 	}
-}
-
-func BenchmarkTVRFDerivation(b *testing.B) {
-	log.Info("------------------- BENCHMARK TVRF HARDENED NODE DERIVATION --------------------")
-	log.Infof("t: %d, n: %d, num children: %d, reuse key-pair: %t", threshold, numParties, numChildren, reuseKeyPair)
-	numCPU := runtime.NumCPU()
-	if int(numParties) > numCPU {
-		log.Warnf("Number of devices (%d) is greater than number of CPUs (%d)", numParties, numCPU)
-	}
-	benchmarkTVRFDerivation(b, threshold, numParties)
 }
 
 func benchmarkTVRFDerivation(b *testing.B, t, n uint32) {
