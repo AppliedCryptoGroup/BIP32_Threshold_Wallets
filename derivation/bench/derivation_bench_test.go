@@ -31,10 +31,12 @@ type thresholdParam struct {
 }
 
 var benchmarkParams = []thresholdParam{
-	{t: 2, n: 3},
+	{t: 1, n: 3},
 	{t: 4, n: 10},
-	{t: 40, n: 100},
-	{t: 99, n: 200},
+	{t: 7, n: 16},
+	{t: 15, n: 32},
+	{t: 31, n: 64},
+	{t: 63, n: 128},
 }
 
 func BenchmarkMultipleTVRFDerivations(b *testing.B) {
