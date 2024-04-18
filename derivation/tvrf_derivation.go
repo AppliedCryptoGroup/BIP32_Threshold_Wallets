@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"math/rand"
 	"runtime"
+	"time"
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/pkg/errors"
@@ -20,6 +21,10 @@ type TVRFDerivation struct {
 	tvrf    tvrf.TVRF
 
 	reuseKeyPair bool
+
+	// netLatency is used to simulate network latency in the derivation process when parties send their evaluations
+	// to the child node.
+	netLatency time.Duration
 }
 
 // NewTVRFDerivation creates a new TVRF derivation instance.
@@ -37,6 +42,10 @@ func NewTVRFDerivation(curve *curves.Curve, devices []node.Device, tvrf tvrf.TVR
 	}
 }
 
+func (td *TVRFDerivation) SetNetworkLatency(netLatency time.Duration) {
+	td.netLatency = netLatency
+}
+
 func (td *TVRFDerivation) DeriveNonHardenedChild(childIdx uint32) (error, []node.Device) {
 	nonHardDerivation := NonHardDerivation{devices: td.devices}
 	return nonHardDerivation.DeriveNonHardenedChild(childIdx)
@@ -48,6 +57,9 @@ func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Nod
 
 	log.Trace("evaluating TVRF for all devices")
 	evals, err := td.parallelTVRFEval(childIdxBytes)
+
+	// Simulate network latency, where all parties would send their evaluations in parallel to the child node.
+	time.Sleep(td.netLatency)
 
 	log.Trace("combining evaluations")
 	combinedEval, err := td.tvrf.Combine(evals)
