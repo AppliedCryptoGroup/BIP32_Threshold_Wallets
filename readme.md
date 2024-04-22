@@ -23,10 +23,7 @@ Per default, it will test the derivation of 1 hardened node/child with different
 To change these and other benchmarking parameters, please refer to the `derivation/bench/derivation_bench_test` file.
 
 #### Derivation using MPC
-The derivation of hardened nodes using generic multi-party-computation (MPC) for, i.a., evaluating the SHA-512 hash function securely among the parties, is achieved by relying on the [MP-SPDZ](https://github.com/data61/MP-SPDZ) framework.
-Please refer to the [official documentation](https://mp-spdz.readthedocs.io/en/latest/) for instructions on how to set up the framework on your machine.
-The relevant MPC files are located in the `MPC-SPDZ` directory, to run the benchmarks, please copy and paste them to the location of your local MP-SPDZ framework folder.
-Then, just run the following command:
-```bash
-./benchDerivation.sh
-```
+We evaluated a generic multi-party-computation (MPC) approach for hardened-node derivation. Specifically, we relied on the [MP-SPDZ](https://github.com/data61/MP-SPDZ) framework for this implementation.
+In this approach, all the parties of the parent node jointly run a MPC to evaluate the hashing function and derive a child private key.
+The Bristol-Fashioned Circuit sha512 is used in the implementation, and we evaluated this approach on ```malicious-shamir-party```. The settings and results can be found in the Evaluation section of our paper.
+For detailed instructions on using MP-SPDZ, please refer to the [official documentation](https://mp-spdz.readthedocs.io/en/latest/).
