@@ -8,8 +8,8 @@ Scripts/setup-ssl.sh 128
 
 # Step 3: Define models and parties to run
 models=("shamir" "mal-shamir")
-parties=(3 10 16 32 64 128 256)
-thresholds=(1 4 7 15 31 63 127)
+parties=(3 10 16 32 64 128)
+thresholds=(1 4 7 15 31 63)
 
 # Function to run a model with specified number of parties
 run_model() {
