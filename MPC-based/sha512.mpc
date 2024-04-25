@@ -1,8 +1,7 @@
 from Compiler.GC.types import sbits, sbitintvec
 from circuit import Circuit
-# from Compiler import library
 
-# Input parameters for sha512 circuit
+# The input parameters for the sha512 circuit
 # sha512: 2 1024 512
 
 siv256 = sbitintvec.get_type(256)
@@ -11,8 +10,8 @@ siv1024 = sbitintvec.get_type(1024)
 sb512 = sbits.get_type(512)
 sb1024 = sbits.get_type(1024)
 
-# Since our codes are only for the purpose of evaluation,
-# we simplify logics processes irrelevant to the derivation computation.
+Since our MPC-based implementation is for evaluation purposes only, we simplify logic processes that are irrelevant to
+the derivation computation itself.
 # random generated 256 bits of key and chaincode and random selected id for child
 key = siv256(0x6f4f1298fe8bdcf149dc8f73d1fcebde4c225b8586769eaf07effcb11f9ac1f4)
 
@@ -20,15 +19,14 @@ key = siv256(0x6f4f1298fe8bdcf149dc8f73d1fcebde4c225b8586769eaf07effcb11f9ac1f4)
 # id = siv256(0x10000011)
 # hardcoded key+ch+id+paddings of 0 (for simplicity)
 msg = siv1024(sb1024(0x6f4f1298fe8bdcf149dc8f73d1fcebde4c225b8586769eaf07effcb11f9ac1f4382f34d4939dc740683bf61c85797d221c6538d767fcec1679bb9aa624990e0010000011000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000))
-# choose the hash function
+# Choose the sha512 circuit.
 sha512 = Circuit('sha512')
-# IV according to the sha512 documents
+# Initialize the hash values of sha512 according to the specification.
 iv = siv512(0x6a09e667f3bcc908bb67ae8584caa73b3c6ef372fe94f82ba54ff53a5f1d36f1510e527fade682d19b05688c2b3e6c1f1f83d9abfb41bd6b5be0cd19137e2179)
 digest = sha512(msg, iv)
 chunk = siv1024(sb1024((1 << 1023) + 1024))
 digest = sha512(chunk, digest)
 # Only keep half of the digest and add the parent key.
 digest = siv256(digest) + key
-# print_ln("%s", digest.elements()[0].reveal())
 # Intuitively we reveal the key only to the child node, which is equivalent in computation as a reveal function.
 digest.elements()[0].reveal().print_reg()
