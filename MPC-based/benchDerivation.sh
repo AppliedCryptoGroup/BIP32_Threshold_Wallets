@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Step 0: Has to be compiled only once
+make shamir-party.x
+make malicious-shamir-party.x
+
 # Step 1: Compile the program
 ./compile.py sha512
 

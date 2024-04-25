@@ -32,10 +32,11 @@ The settings and results can be found in the evaluation Section of the paper.
 For detailed instructions on using MP-SPDZ, please refer to the [official documentation](https://mp-spdz.readthedocs.io/en/latest/).
 
 The relevant MPC files are located in the `MPC-based` directory.
+The ``benchDerivation.sh`` script defines the (t,n) parameters and settings (honest or malicious) to test.
 To run this derivation and reproduce the benchmarks, please first clone and build MP-SPDZ on your machine, copy and paste these files to the corresponding location under your local MP-SPDZ framework folder, i.e., ```mp-spdz-0.3.8```.
 The ```sha512.mpc``` should be put in ```mp-spdz-0.3.8\Programs\Source```, while the ```benchDerivation.sh``` should be put in ```mp-spdz-0.3.8``` directly.
 
-After compiling the virtual machine, i.e., ```make malicious-shamir-party.x```, just run the following command:
+Now you can run the following command to benchmark the MPC-based derivation:
 ```bash
 ./benchDerivation.sh
 ```
