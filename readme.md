@@ -23,7 +23,17 @@ Per default, it will test the derivation of 1 hardened node/child with different
 To change these and other benchmarking parameters, please refer to the `derivation/bench/derivation_bench_test` file.
 
 #### Derivation using MPC
-We evaluated a generic multi-party-computation (MPC) approach for hardened-node derivation. Specifically, we relied on the [MP-SPDZ](https://github.com/data61/MP-SPDZ) framework for this implementation.
+We evaluated a generic multi-party-computation (MPC) approach for hardened-node derivation based on BIP32, where SHA-512 hash function is evaluated. 
+Specifically, we relied on the [MP-SPDZ](https://github.com/data61/MP-SPDZ) framework for this implementation.
 In this approach, all the parties of the parent node jointly run an MPC protocol to evaluate the hashing function and derive a child private key.
-The Bristol-Fashioned Circuit SHA-512 is used in the implementation, and we evaluated this approach on ```malicious-shamir-party```. The settings and results can be found in the Evaluation section of the paper.
+We abstracted the implementation for simplicity, which only reduces the complexity of the MPC-based derivation compared to the standard BIP32 definition.
+The [Bristol-Fashioned Circuit](https://nigelsmart.github.io/MPC-Circuits/) SHA-512 is used in the implementation, and we evaluated this approach on ```malicious-shamir-party```. The settings and results can be found in the Evaluation section of the paper.
 For detailed instructions on using MP-SPDZ, please refer to the [official documentation](https://mp-spdz.readthedocs.io/en/latest/).
+
+The relevant MPC files are located in the `MPC-based` directory, to run this derivation and get the benchmarks, please first install MP-SPDZ on your machine, copy and paste them to the corresponding location under your local MP-SPDZ framework folder, i.e. ```mp-spdz-0.3.8```.
+The ```sha512.mpc``` should be put in ```mp-spdz-0.3.8\Programs\Source```, while the ```benchDerivation.sh``` should be put in ```mp-spdz-0.3.8``` directly.
+
+After compiling the virtual machine, i.e. ```make malicious-shamir-party.x```, just run the following command:
+```bash
+./benchDerivation.sh
+```
