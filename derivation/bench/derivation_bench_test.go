@@ -65,6 +65,21 @@ func BenchmarkMultipleTVRFDerivations(b *testing.B) {
 	}
 }
 
+func BenchmarkStandardBIP32Derivation(b *testing.B) {
+	log.Info("------------------- BENCHMARK STANDARD BIP32 DERIVATION --------------------")
+
+	err, deriv := derivation.NewStandardBIP32Derivation()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b.Run("Run", func(b *testing.B) {
+		for i := 0; i < numChildren; i++ {
+			deriv.DeriveNonHardenedChild(uint32(i))
+		}
+	})
+}
+
 func benchmarkTVRFDerivation(b *testing.B, t, n uint32) {
 	devices := utils.CreateDevices(t, n)
 	ddhTvrf := tvrf.NewDDHTVRF(t, n, curve, sha256, optimizedTvrfCombination)
