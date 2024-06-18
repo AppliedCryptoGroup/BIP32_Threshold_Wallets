@@ -75,7 +75,7 @@ func BenchmarkStandardBIP32Derivation(b *testing.B) {
 
 	b.Run("Run", func(b *testing.B) {
 		for i := 0; i < numChildren; i++ {
-			err, _ = deriv.DeriveHardenedChild(uint32(i))
+			_, err = deriv.DeriveHardenedChild(uint32(i))
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -97,7 +97,7 @@ func benchmarkTVRFDerivation(b *testing.B, t, n uint32) {
 
 func deriveChildren(b *testing.B, deriv derivation.TVRFDerivation, numChildren int) {
 	for i := 0; i < numChildren; i++ {
-		err, _ := deriv.DeriveHardenedChild(uint32(i))
+		_, err := deriv.DeriveHardenedChild(uint32(i))
 		if err != nil {
 			b.Fatal(err)
 		}

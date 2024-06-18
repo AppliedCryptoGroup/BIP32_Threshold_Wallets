@@ -10,11 +10,11 @@ type GenericDerivation struct {
 	devices []node.Device
 }
 
-func (gd GenericDerivation) DeriveNonHardenedChild(childIdx uint32) (error, []node.Device) {
+func (gd GenericDerivation) DeriveNonHardenedChild(childIdx uint32) ([]node.Device, error) {
 	nonHardDerivation := NonHardDerivation{devices: gd.devices}
 	return nonHardDerivation.DeriveNonHardenedChild(childIdx)
 }
 
-func (gd GenericDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Node) {
-	return errors.New("not implemented"), nil
+func (gd GenericDerivation) DeriveHardenedChild(childIdx uint32) (*node.Node, error) {
+	return nil, errors.New("not implemented")
 }

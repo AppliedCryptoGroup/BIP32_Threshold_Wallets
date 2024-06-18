@@ -10,7 +10,7 @@ type NonHardDerivation struct {
 	devices []node.Device
 }
 
-func (nhd NonHardDerivation) DeriveNonHardenedChild(childIdx uint32) (error, []node.Device) {
+func (nhd NonHardDerivation) DeriveNonHardenedChild(childIdx uint32) ([]node.Device, error) {
 	// Execute DPSS between nd.devices and the new devices
-	return errors.New("not implemented"), nil
+	return nil, errors.New("not implemented")
 }

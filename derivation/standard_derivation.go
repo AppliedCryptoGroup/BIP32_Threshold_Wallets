@@ -26,26 +26,26 @@ func NewStandardBIP32Derivation() (error, *StandardBIP32Derivation) {
 	return nil, &StandardBIP32Derivation{masterKey: key}
 }
 
-func (s *StandardBIP32Derivation) DeriveNonHardenedChild(childIdx uint32) (error, *bip32.Key) {
+func (s *StandardBIP32Derivation) DeriveNonHardenedChild(childIdx uint32) (*bip32.Key, error) {
 	// TODO: Check if the index is hardened.
 
 	key, err := s.masterKey.NewChildKey(childIdx)
 	if err != nil {
-		return errors.Wrap(err, "failed to derive child key"), nil
+		return nil, errors.Wrap(err, "failed to derive child key")
 	}
 
-	return nil, key
+	return key, nil
 }
 
-func (s *StandardBIP32Derivation) DeriveHardenedChild(childIdx uint32) (error, *bip32.Key) {
+func (s *StandardBIP32Derivation) DeriveHardenedChild(childIdx uint32) (*bip32.Key, error) {
 	// TODO: Check if the index is non-hardened.
 
 	key, err := s.masterKey.NewChildKey(childIdx)
 	if err != nil {
-		return errors.Wrap(err, "failed to derive child key"), nil
+		return nil, errors.Wrap(err, "failed to derive child key")
 	}
 
-	return nil, key
+	return key, nil
 }
 
 // Generates 32 byte seed for BIP32 derivation
