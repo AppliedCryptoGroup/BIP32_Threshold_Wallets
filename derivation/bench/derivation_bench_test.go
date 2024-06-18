@@ -75,7 +75,10 @@ func BenchmarkStandardBIP32Derivation(b *testing.B) {
 
 	b.Run("Run", func(b *testing.B) {
 		for i := 0; i < numChildren; i++ {
-			deriv.DeriveNonHardenedChild(uint32(i))
+			err, _ = deriv.DeriveHardenedChild(uint32(i))
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
 	})
 }
