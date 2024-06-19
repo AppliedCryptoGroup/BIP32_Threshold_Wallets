@@ -27,7 +27,9 @@ func NewStandardBIP32Derivation() (error, *StandardBIP32Derivation) {
 }
 
 func (s *StandardBIP32Derivation) DeriveNonHardenedChild(childIdx uint32) (*bip32.Key, error) {
-	// TODO: Check if the index is hardened.
+	if childIdx >= bip32.FirstHardenedChild {
+		return nil, errors.New("invalid child index for non-hardened derivation")
+	}
 
 	key, err := s.masterKey.NewChildKey(childIdx)
 	if err != nil {
@@ -38,7 +40,9 @@ func (s *StandardBIP32Derivation) DeriveNonHardenedChild(childIdx uint32) (*bip3
 }
 
 func (s *StandardBIP32Derivation) DeriveHardenedChild(childIdx uint32) (*bip32.Key, error) {
-	// TODO: Check if the index is non-hardened.
+	if childIdx < bip32.FirstHardenedChild {
+		return nil, errors.New("invalid child index for hardened derivation")
+	}
 
 	key, err := s.masterKey.NewChildKey(childIdx)
 	if err != nil {

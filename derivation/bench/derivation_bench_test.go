@@ -8,6 +8,7 @@ import (
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	log "github.com/sirupsen/logrus"
+	"github.com/tyler-smith/go-bip32"
 	"golang.org/x/crypto/sha3"
 
 	"bip32_threshold_wallet/derivation"
@@ -75,7 +76,8 @@ func BenchmarkStandardBIP32Derivation(b *testing.B) {
 
 	b.Run("Run", func(b *testing.B) {
 		for i := 0; i < numChildren; i++ {
-			_, err = deriv.DeriveHardenedChild(uint32(i))
+			childIdx := bip32.FirstHardenedChild + uint32(i)
+			_, err = deriv.DeriveHardenedChild(childIdx)
 			if err != nil {
 				b.Fatal(err)
 			}
