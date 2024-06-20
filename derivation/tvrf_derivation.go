@@ -46,12 +46,12 @@ func (td *TVRFDerivation) SetNetworkLatency(netLatency time.Duration) {
 	td.netLatency = netLatency
 }
 
-func (td *TVRFDerivation) DeriveNonHardenedChild(childIdx uint32) (error, []node.Device) {
+func (td *TVRFDerivation) DeriveNonHardenedChild(childIdx uint32) ([]node.Device, error) {
 	nonHardDerivation := NonHardDerivation{devices: td.devices}
 	return nonHardDerivation.DeriveNonHardenedChild(childIdx)
 }
 
-func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Node) {
+func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (*node.Node, error) {
 	childIdxBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(childIdxBytes, childIdx)
 
@@ -64,21 +64,21 @@ func (td *TVRFDerivation) DeriveHardenedChild(childIdx uint32) (error, *node.Nod
 	log.Trace("combining evaluations")
 	combinedEval, err := td.tvrf.Combine(evals)
 	if err != nil {
-		return errors.Wrap(err, "combining evaluations"), nil
+		return nil, errors.Wrap(err, "combining evaluations")
 	}
 	log.Tracef("combined evaluation: %x", combinedEval.Eval.ToAffineCompressed())
 
 	log.Trace("verifying combined evaluation")
 	valid := td.tvrf.Verify(*combinedEval)
 	if !valid {
-		return errors.New("verification of combined evaluation failed"), nil
+		return nil, errors.New("verification of combined evaluation failed")
 	}
 
 	log.Trace("generating ECDSA key pair for child node")
 	sk, pk := td.genECDSAKeyPair(combinedEval)
 	child := node.NewNode(childIdx, nil, sk, pk)
 
-	return nil, &child
+	return &child, nil
 }
 
 func (td *TVRFDerivation) sequentialTVRFEval(childIdxBytes []byte) ([]*tvrf.PartialEvaluation, error) {

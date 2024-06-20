@@ -8,6 +8,7 @@ import (
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	log "github.com/sirupsen/logrus"
+	"github.com/tyler-smith/go-bip32"
 	"golang.org/x/crypto/sha3"
 
 	"bip32_threshold_wallet/derivation"
@@ -65,6 +66,25 @@ func BenchmarkMultipleTVRFDerivations(b *testing.B) {
 	}
 }
 
+func BenchmarkStandardBIP32Derivation(b *testing.B) {
+	log.Info("------------------- BENCHMARK STANDARD BIP32 DERIVATION --------------------")
+
+	err, deriv := derivation.NewStandardBIP32Derivation()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b.Run("Run", func(b *testing.B) {
+		for i := 0; i < numChildren; i++ {
+			childIdx := bip32.FirstHardenedChild + uint32(i)
+			_, err = deriv.DeriveHardenedChild(childIdx)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
 func benchmarkTVRFDerivation(b *testing.B, t, n uint32) {
 	devices := utils.CreateDevices(t, n)
 	ddhTvrf := tvrf.NewDDHTVRF(t, n, curve, sha256, optimizedTvrfCombination)
@@ -79,7 +99,7 @@ func benchmarkTVRFDerivation(b *testing.B, t, n uint32) {
 
 func deriveChildren(b *testing.B, deriv derivation.TVRFDerivation, numChildren int) {
 	for i := 0; i < numChildren; i++ {
-		err, _ := deriv.DeriveHardenedChild(uint32(i))
+		_, err := deriv.DeriveHardenedChild(uint32(i))
 		if err != nil {
 			b.Fatal(err)
 		}
