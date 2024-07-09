@@ -25,17 +25,17 @@ func TestNewTVRFDerivation(t *testing.T) {
 	ddhTvrf := tvrf.NewDDHTVRF(threshold, numParties, curve, sha256, true)
 	deriv := derivation.NewTVRFDerivation(curve, devices, ddhTvrf, true)
 
-	err, childNode1 := deriv.DeriveHardenedChild(1)
+	childNode1, err := deriv.DeriveHardenedChild(1)
 	require.NoError(t, err)
 	require.NotNil(t, childNode1)
 
-	err, childNode1Clone := deriv.DeriveHardenedChild(1)
+	childNode1Clone, err := deriv.DeriveHardenedChild(1)
 	require.NoError(t, err)
 	require.NotNil(t, childNode1Clone)
 
 	assert.Truef(t, (*childNode1.PublicKey).Equal(*childNode1Clone.PublicKey), "Public keys should be the same")
 
-	err, childNode2 := deriv.DeriveHardenedChild(2)
+	childNode2, err := deriv.DeriveHardenedChild(2)
 	require.NoError(t, err)
 	require.NotNil(t, childNode2)
 

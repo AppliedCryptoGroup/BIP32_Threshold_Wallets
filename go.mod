@@ -8,6 +8,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.8.1
+	github.com/tyler-smith/go-bip32 v1.0.0
 	go.dedis.ch/dela v0.0.0-20231011144949-4677467c030c
 	go.dedis.ch/kyber/v3 v3.1.0
 	golang.org/x/crypto v0.1.0
@@ -15,6 +16,8 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
+	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
+	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bwesterb/go-ristretto v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
